@@ -253,27 +253,16 @@ void run(byte AtoBkeystream[], byte BtoAkeystream[]) {
 
 
         /* Zero out the output buffers. */
-        /*
         for (i=0; i<=113/8; i++)
                 AtoBkeystream[i] = BtoAkeystream[i] = 0;
-*/
 
         /* Generate 114 bits of keystream for the
          * A->B direction.  Store it, MSB first. */
-         /*
-        for (i=0; i<114; i++) {
-                clock(0,0);
-                AtoBkeystream[i/8] |= getbit() << (7-(i&7));
-        }*/
-
-
-        /* Generate 114 bits of keystream for the
-         * B->A direction.  Store it, MSB first. */
         for (i=0; i<6; i++) {
                 clock(0,0);
-                BtoAkeystream[i/8] |= getbit() << (7-(i&7));
-                printf()
+                AtoBkeystream[i/8] |= getbit() << (7-(i&7));
         }
+
 }
 
 
