@@ -136,6 +136,13 @@
 #define R2TAPS  0x300000 /* bits 21,20 */
 #define R3TAPS  0x700080 /* bits 22,21,20,7 */
 
+#define R1SHIFT 64 /* Shifting of R1+R2+R3 */
+#define R2SHIFT 45 /* Shifting of R2+R3 */
+#define R3SHIFT 23 /* Shifting of R3 */
+
+#define R1SIZE 19
+#define R2SIZE 22
+#define R3SIZE 23
 
 typedef unsigned char byte;
 typedef unsigned long word;
@@ -218,28 +225,31 @@ bit getbit() {
 
 /* Do the A5 key setup.  This routine accepts a 64-bit key and
  * a 22-bit frame number. */
-void keysetup(byte key[8], word frame) {
+void keysetup(word key, word frame) {
         int i = 0;
-
+        bit bitkey;
         /* Zero out the shift registers. */
         R1 = R2 = R3 = 0;
 
-        bit bitkey;
-        for (i = 0; i < 64; i++){
-            bitkey = (*key >> i) & 1;
+
+        for (i = 0; i < R1SIZE; i++){
+            bitkey = (key >> (R1SHIFT-i-1)) & 1;
+            R1 <<= 1;
+            R1 ^= bitkey;
+        }
+
+        for (i = 0; i < R2SIZE; i++){
+            bitkey = (key >> (R2SHIFT-i-1)) & 1;
+            R2 <<= 1;
+            R2 ^= bitkey;
         }
 
 
-        for (i = 0; i < 19; i++){
-            R1 = (*key >> i) & 1;
+        for (i = 0; i < R3SIZE; i++){
+            bitkey = (key >> (R3SHIFT-i-1)) & 1;
+            R3 <<= 1;
+            R3 ^= bitkey;
         }
-
-
-
-        R1 = 0b1001000100011010001;
-        R2 = 0b0101100111100010011010;
-        R3 = 0b10111100110111100001111;
-
 
         /* Load the key into the shift registers,
          * LSB of first byte of key array first,
@@ -307,21 +317,20 @@ void run(byte AtoBkeystream[], byte BtoAkeystream[]) {
  ////////////////////////////////////////////Modificar nosotros
 void test() {
         //byte key[8] = {0x12, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF};
-        byte key[8] = {0x91, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x0F};
+        //byte key[8] = {0x91, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x0F};
+        word key = 0x911A2B3C4D5E6F0F;
         word frame = 0x134;
 
         byte AtoB[15], BtoA[15];
-        int i;
+
+        printf("***************************\n");
+        printf("A5/1 Modifidied\nPavel Nichita\n");
+        printf("***************************\n\n");
 
         keysetup(key, frame);
         run(AtoB, BtoA);
 
         /* Print some debugging output. */
-        printf("A5/1 Modifidied\n");
-        printf("observed output:\n");
-        printf(" A->B: 0x");
-        for (i=0; i<15; i++)
-                printf("%02X", AtoB[i]);
         printf("\n");
     }
 
