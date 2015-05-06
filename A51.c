@@ -112,6 +112,7 @@
 
 
 #include <stdio.h>
+#include <stdlib.h>
 
 
 /* Masks for the shift registers */
@@ -218,12 +219,22 @@ bit getbit() {
 /* Do the A5 key setup.  This routine accepts a 64-bit key and
  * a 22-bit frame number. */
 void keysetup(byte key[8], word frame) {
-        int i;
-        bit keybit, framebit;
-
+        int i = 0;
 
         /* Zero out the shift registers. */
         R1 = R2 = R3 = 0;
+
+        bit bitkey;
+        for (i = 0; i < 64; i++){
+            bitkey = (*key >> i) & 1;
+        }
+
+
+        for (i = 0; i < 19; i++){
+            R1 = (*key >> i) & 1;
+        }
+
+
 
         R1 = 0b1001000100011010001;
         R2 = 0b0101100111100010011010;
@@ -241,6 +252,26 @@ void keysetup(byte key[8], word frame) {
         /* Now the key is properly set up. */
 }
 
+void printR(word R, int size, char* str) {
+    int i;
+    bit* bitkeyarray = malloc(size*sizeof(bit));
+
+    printf("%s", str);
+    for (i = 0; i < size; i++){
+        bitkeyarray[size-i-1] = (R >> i) & 1;
+    }
+
+    printf("%d \t", (int)R);
+
+    for (i = 0; i < size; i++){
+        printf("%d", (int)bitkeyarray[i]);
+        if (i % 4 == 4-1)
+            printf(" ");
+    }
+
+    printf("\n");
+    free(bitkeyarray);
+}
 
 /* Generate output.  We generate 228 bits of
  * keystream output.  The first 114 bits is for
@@ -259,10 +290,15 @@ void run(byte AtoBkeystream[], byte BtoAkeystream[]) {
         /* Generate 114 bits of keystream for the
          * A->B direction.  Store it, MSB first. */
         for (i=0; i<6; i++) {
-                clock(0,0);
-                AtoBkeystream[i/8] |= getbit() << (7-(i&7));
+            printf("Iteracion %d \n", i+1);
+            printR(R1, 19, "R1 = ");
+            printR(R2, 22, "R2 = ");
+            printR(R3, 23, "R3 = ");
+            printf("Secuencia cifrante: %d\n", (int) getbit());
+            printf("\n");
+            AtoBkeystream[i/8] |= getbit() << (7-(i&7)); //cambie orden con la siguiente linea
+            clock(0,0); //cambie orden con la anterior linea
         }
-
 }
 
 
@@ -273,61 +309,21 @@ void test() {
         //byte key[8] = {0x12, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF};
         byte key[8] = {0x91, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x0F};
         word frame = 0x134;
-        byte goodAtoB[15] = { 0x53, 0x4E, 0xAA, 0x58, 0x2F, 0xE8, 0x15,
-                              0x1A, 0xB6, 0xE1, 0x85, 0x5A, 0x72, 0x8C, 0x00 };
-        byte goodBtoA[15] = { 0x24, 0xFD, 0x35, 0xA3, 0x5D, 0x5F, 0xB6,
-                              0x52, 0x6D, 0x32, 0xF9, 0x06, 0xDF, 0x1A, 0xC0 };
 
         byte AtoB[15], BtoA[15];
-        int i, failed=0;
-
+        int i;
 
         keysetup(key, frame);
         run(AtoB, BtoA);
 
-
-        /* Compare against the test vector. */
-        for (i=0; i<15; i++)
-                if (AtoB[i] != goodAtoB[i])
-                        failed = 1;
-        for (i=0; i<15; i++)
-                if (BtoA[i] != goodBtoA[i])
-                        failed = 1;
-
-
         /* Print some debugging output. */
-        printf("A5 Modifidied\n");
-        printf("key: 0x");
-        for (i=0; i<8; i++)
-                printf("%02X", key[i]);
-        printf("\n");
-        printf("frame number: 0x%06X\n", (unsigned int)frame);
-        printf("known good output:\n");
-        printf(" A->B: 0x");
-        for (i=0; i<15; i++)
-                printf("%02X", goodAtoB[i]);
-        printf("  B->A: 0x");
-        for (i=0; i<15; i++)
-                printf("%02X", goodBtoA[i]);
-        printf("\n");
+        printf("A5/1 Modifidied\n");
         printf("observed output:\n");
         printf(" A->B: 0x");
         for (i=0; i<15; i++)
                 printf("%02X", AtoB[i]);
-        printf("  B->A: 0x");
-        for (i=0; i<15; i++)
-                printf("%02X", BtoA[i]);
         printf("\n");
-
-
-        if (!failed) {
-                printf("Self-check succeeded: everything looks ok.\n");
-                exit(0);
-        } else {
-                /* Problems!  The test vectors didn't compare*/
-                printf("\nI don't know why this broke; contact the authors.\n");
-        }
-}
+    }
 
 
 int main(void) {
