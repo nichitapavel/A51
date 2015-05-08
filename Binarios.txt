@@ -69,24 +69,3 @@ Iter 5
 100 1000 1000 1101 0001 = 0x04 0x88 0xD1
 01 0110 0111 1000 1001 1010 = 0x16 0x78 0x9A
 101 1110 0110 1111 0000 1111 = 0x5E 0x6F 0x0F
-
-for (i=0; i<19; i++) {
-                clock(1,0); /* always clock */ //Mover hacia izquierda los registros
-                keybit = (key[i/8] >> (i&7)) & 1; /* The i-th bit of the key */ //se coge el bit más de la derecha del byte
-                //se mueve el byte para coger el siguiente bit
-                R1 ^= keybit; R2 ^= keybit; R3 ^= keybit; //se hace un XOR con el bit sacado en cada registro
-        }
-
-        for (i=0; i<22; i++) {
-                clock(1,0); /* always clock */ //Mover hacia izquierda los registros
-                keybit = (key[i/8] >> (i&7)) & 1; /* The i-th bit of the key */ //se coge el bit más de la derecha del byte
-                //se mueve el byte para coger el siguiente bit
-                R1 ^= keybit; R2 ^= keybit; R3 ^= keybit; //se hace un XOR con el bit sacado en cada registro
-        }
-
-        for (i=0; i<23; i++) {
-                clock(1,0); /* always clock */ //Mover hacia izquierda los registros
-                keybit = (key[i/8] >> (i&7)) & 1; /* The i-th bit of the key */ //se coge el bit más de la derecha del byte
-                //se mueve el byte para coger el siguiente bit
-                R1 ^= keybit; R2 ^= keybit; R3 ^= keybit; //se hace un XOR con el bit sacado en cada registro
-        }
